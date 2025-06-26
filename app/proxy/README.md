@@ -1,0 +1,1 @@
+The sources.json must be in the same dir with get.py

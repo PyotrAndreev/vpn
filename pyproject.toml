@@ -1,0 +1,15 @@
+[project]
+name = "vpn"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.14"
+dependencies = []
+
+[tool.logging]
+level         = "DEBUG"                           # root logger level
+console_level = "INFO"                            # level for console handler
+file          = "tmp/logs/app.log"                # filename for file handler
+max_bytes     = 5_000_000                         # 5 MB per file
+backup_count  = 10                                # keep last n files
+format        = "%(asctime)s %(levelname)-8s %(name)s.%(funcName)s:%(lineno)-5d %(message)s"

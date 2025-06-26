@@ -1,0 +1,8 @@
+# Byte-compiled / cache files
+__pycache__/
+
+# Temporary files, saved only locals
+tmp/
+
+
+# why not .venv in git status

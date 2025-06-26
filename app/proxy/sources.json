@@ -1,0 +1,5 @@
+{
+  "spysme_socks": "https://spys.me/socks.txt",
+  "spysme_http":  "https://spys.me/proxy.txt",
+  "proxifly":     "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt"
+}

@@ -7,18 +7,38 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def to_json(data: list[dict[str, str | bool]], file_name: str) -> None:
-    """Serialize *data* (list of dicts) to a UTF-8 JSON file."""
+def to_json(data: dict | list[dict[str, str | bool]], full_path: str | Path, prefix: str = None, suffix: str = None, max_files_in_dir: int = None) -> None:
+    """
+    Save a Python dict or list of dicts as JSON to the given path.
+    Writing a file with the same name replaces the existing one.
     
-    path = _dated_path(file_name)
+    Args:
+        with_date: If True, prepend "YYYYMMDD_" to the file_name.
+        max_files_in_dir: Max allowed files in the save dir; delete oldest if exceeded.
+    """
+    # Validate data type
+    if not isinstance(data, (dict, list)):
+        logger.error(f"❌ Invalid data type: {type(data).__name__}. Expected dict or list of dicts.")
+        sys.exit(1)
+
+    full_path = Path(full_path).with_suffix(".json")  # ensure .json extension
+
+    if prefix:  # add 'YYYYMMDD_<file_name>.json' from the given path
+        full_path = full_path.with_name(f"{prefix}_{full_path.name}")
+    if suffix:  # add 'YYYYMMDD_<file_name>.json' from the given path
+        full_path = full_path.with_name(f"{full_path.stem}_{suffix}{full_path.suffix}")
+
     try:
-        with path.open("w", encoding="utf-8") as file:
-            json.dump(data, file, ensure_ascii=False, indent=2)
-        logger.debug(f"📝 Wrote {len(data)} records → {path.relative_to(Path.cwd())}")
-        
+        full_path.parent.mkdir(parents=True, exist_ok=True)  # ensure the dir exists
+        full_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        logger.debug(f"📝 Saved JSON with {len(data)} items to {full_path}")
+
+        if max_files_in_dir != None:
+            _cleanup_old_files(full_path.parent, full_path.stem, max_files_in_dir)
+
     except Exception:
-        logger.exception(f"❌ Could not write JSON to {path}")
-        raise
+        logger.exception(f"❌ Failed to write JSON to {full_path}")
+        sys.exit(1)
 
 
 def from_json(full_path: str | Path) -> dict | list[dict]:
@@ -28,8 +48,8 @@ def from_json(full_path: str | Path) -> dict | list[dict]:
       • a list: [ { "name": "...", "url": "..." }, ... ]
     Returns that dict or list. Exits(1) on any I/O or parse error, or on unexpected shape.
     """
-
     path = Path(full_path)
+
     if not path.is_file():
         logger.exception(f"❌ Sources not found: {path=}")
         sys.exit(1)  # terminate with a non-zero exit code
@@ -54,56 +74,22 @@ def from_json(full_path: str | Path) -> dict | list[dict]:
     # Anything else is unexpected
     logger.error(f"❌ Unexpected JSON structure in {path!r}: got {type(data).__name__}, expected dict or list of dicts")
     sys.exit(1)
-    
-
-def to_csv(data: list[dict[str, str | bool]], full_path: str) -> None:
-    """Serialize *data* (list of dicts) to a UTF-8 CSV file."""
-
-    path = Path(full_path)
-    ...
 
 
-def from_csv(full_path: str) -> list[dict[str, str | bool]]:
-    path = Path(full_path)
-    ...
-
-
-def _dated_path(file_name: str) -> Path:
+def _cleanup_old_files(dir_path: Path, match_term: str, max_files: int) -> None:
     """
-    Build     source/YYYYMMDD_<file_name>.json
+    Keep only the newest `max_files` files in the folder that contain `match_term` in the filename.
+    Older files are deleted based on creation (modification) time.
     """
-    date = datetime.now().strftime("%Y%m%d")
-    if not file_name.endswith(".json"):
-        file_name += ".json"
-    
-    return Path.cwd() / "source" / f"{date}_{file_name}"
+    match_files: list[Path] = sorted(dir_path.glob(f"*{match_term}*.json"),  # select matching files
+                                     key=lambda file: file.stat().st_mtime)  # sort by modification time (oldest first)
 
+    if len(match_files) > max_files:  # delete oldest files if above the limit
+        to_delete = match_files[:len(match_files)-max_files]
 
-def _del_old_files(max_keep: int = 10) -> None:
-    """
-    Keep only the newest *max_keep* JSON files in SOURCE_DIR.
-    """
-    files = sorted(
-        SOURCE_DIR.glob("*.json"),
-        key=lambda p: p.stat().st_mtime,
-        reverse=True,       # newest first
-    )
-    for old in files[max_keep:]:
-        try:
-            old.unlink()
-            logger.debug("🗑️  Deleted old file %s", old.name)
-        except OSError as exc:
-            logger.warning("Could not delete %s: %s", old, exc)
-
-
-# def parse_with_polars(csv_text: str) -> pl.DataFrame:
-    
-#     # delete the last * and # in a hedder
-#     csv_text = csv_text.rstrip().rstrip('*') \
-#         .replace("#", '', count=1)
-
-#     return pl.read_csv(
-#         csv_text.encode(),      # feed Polars a bytes buffer
-#         skip_rows=1,            # drop your malformed first header row
-#         has_header=True         # treat what remains as all data
-#     )
+        for file in to_delete:
+            try:
+                file.unlink()
+                logger.debug(f"🗑️ Deleted: {file}")
+            except OSError as exc:
+                logger.warning(f"⚠️ Could not delete old {file=} to enforce file limit")

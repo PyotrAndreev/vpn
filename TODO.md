@@ -3,7 +3,8 @@
 2. write all proxies and .openvpn to files
 3. first try use the files to connect
 4. expand vpn & proxy sources 
-4. write the tore code block
-5. make the requests with by only 2 sessions to not abuse
+5. write the tore code block
+6. write 'invisible' XRAY / REALITY VPN
+7. make the requests with by only 2 sessions to not abuse
 
-6. write web-GUI
+8. write web-GUI

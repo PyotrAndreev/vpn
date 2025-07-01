@@ -6,6 +6,7 @@ from asyncio import TimeoutError, IncompleteReadError
 from aiohttp import ClientSession, ClientTimeout, ClientError
 
 from ..utils.files import from_json
+from ..utils.combiner import fast_store_to
 # from ..configs.web_sessions import session_pool
 
 import logging
@@ -96,15 +97,14 @@ def _proxy_preprocessing(proxy_store: dict, source: str, raw_data: str) -> None:
                 else:  # source.endswith("socks")
                     meta['protocol'] = 'socks5'
 
-                _store_proxy_info(proxy_store, ip_port, meta)
+                fast_store_to(proxy_store, ip_port, meta)
 
             
         elif source == "proxifly":
             for url in raw_data.splitlines():
                 raw_proxy = url.split('://') 
 
-                _store_proxy_info(
-                    proxy_store,
+                fast_store_to(proxy_store,
                     raw_proxy[1],  # ip_port
                     {'protocol': raw_proxy[0], 'source': source}  # meta
                 )
@@ -130,22 +130,22 @@ def _pase_spysme_meta(raw_proxy: list[str], source: str) -> dict[str, str | bool
         }
 
 
-def _store_proxy_info(proxies_store: dict[str, dict[str, str | bool]], ip_port: str, new_meta: dict[str, str | bool | None]) -> None:
-    '''+ escaping proxy duplicates'''
-    if inner_meta := proxies_store.get(ip_port):
-        for key, new_val in new_meta.items():
-            if old_val := inner_meta.get(key):
-                # consider that type(new_val) is type(old_val)
-                if isinstance(new_val, str) and len(new_val) > len(old_val):
-                    inner_meta[key] = new_val   # rewrite the value
-                elif isinstance(new_val, bool) and len(new_val) > len(old_val):
-                    inner_meta[key] = new_val & old_val
-                # elif ...:
-                #     look for data types into parsers
-            else:
-                inner_meta[key] = new_val
-    else:
-        proxies_store[ip_port] = new_meta
+# def _store_proxy_info(proxies_store: dict[str, dict[str, str | bool]], ip_port: str, new_meta: dict[str, str | bool | None]) -> None:
+#     '''+ escaping proxy duplicates'''
+#     if inner_meta := proxies_store.get(ip_port):
+#         for key, new_val in new_meta.items():
+#             if old_val := inner_meta.get(key):
+#                 # consider that type(new_val) is type(old_val)
+#                 if isinstance(new_val, str) and len(new_val) > len(old_val):
+#                     inner_meta[key] = new_val   # rewrite the value
+#                 elif isinstance(new_val, bool) and len(new_val) > len(old_val):
+#                     inner_meta[key] = new_val & old_val
+#                 # elif ...:
+#                 #     look for data types into parsers
+#             else:
+#                 inner_meta[key] = new_val
+#     else:
+#         proxies_store[ip_port] = new_meta
 
 
 def _try_many_protocols(proxy_store: dict[str, dict[str, str | bool]]) -> list[dict[str, str | bool]]:

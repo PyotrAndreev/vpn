@@ -13,8 +13,8 @@ def to_json(data: dict | list[dict[str, str | bool]], full_path: str | Path, pre
     Writing a file with the same name replaces the existing one.
     
     Args:
-        with_date: If True, prepend "YYYYMMDD_" to the file_name.
-        max_files_in_dir: Max allowed files in the save dir; delete oldest if exceeded.
+        with_date: If True, prepend "YYYYMMDD_" to the file name.
+        max_files_in_dir: Max files allowed matching name pattern; delete oldest if exceeded.
     """
     # Validate data type
     if not isinstance(data, (dict, list)):

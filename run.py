@@ -23,9 +23,12 @@ async def main(use_tor: bool = False) -> None:
         # Tweak your FD (file descriptors) limit to allow many proxy connections
         set_fd_limit(n_proxies = len(proxies_meta))
         
-        res = await get_vpns(proxies_meta)
+        vpns = await get_vpns(proxies_meta)
 
-        print(res)
+        # connect
+
+        # while ...:
+        #     if no lost conection then chose other vpn
 
     # finally:
     #     await session_pool.close()  # close sockets

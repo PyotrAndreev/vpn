@@ -1,6 +1,7 @@
 import sys
 from datetime import datetime
 from pathlib import Path
+from types import Any
 
 import aiohttp, asyncio
 from asyncio import TimeoutError, IncompleteReadError
@@ -22,7 +23,7 @@ TIMEOUT_GET_RAW_VPN = ClientTimeout(total=10)
 VPN_SOURCES = from_json(Path(__file__).parent / 'sources.json')  # look to README to see more sources
 
 
-async def get_vpns(proxies: list[dict[str, str | bool]], from_local_files: bool = True) -> dict[str, dict[str, str | int | None]] | None:
+async def get_vpns(proxies: list[dict[str, str | bool]], from_local_files: bool = True) -> dict[str, dict[str, Any]] | None:
     """
     Try async via each proxy, return the first successful response body.
     """
@@ -62,8 +63,9 @@ async def get_vpns(proxies: list[dict[str, str | bool]], from_local_files: bool 
             #           RC deletes Task(...) → coroutine object
             #       - else:
             #           Task(...) is alive before it's statuce is done
+            # TODO: ASYNCIO THEORY: but why the program doesn't shutdown when some asyncio tasks are active?
 
-            to_json(vpns, full_path='tmp/sources/vpn.json', suffix=f"{datetime.now():%Y%m%d}", max_files_in_dir=5)
+            to_json(vpns, full_path='vpn/tmp/sources/vpn.json', suffix=f"{datetime.now():%Y%m%d}", max_files_in_dir=2)
             return vpns
 
     logger.warning("❌ No working proxy found.")
@@ -165,3 +167,4 @@ def _vpn_preprocessing(vpn_store: dict, source: str, raw_data: str) -> None:
 
     except Exception:
         ...
+

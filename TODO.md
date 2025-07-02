@@ -1,3 +1,5 @@
+connect
+
 1. make the not optimal MVP that works
     - 
 2. write all proxies and .openvpn to files

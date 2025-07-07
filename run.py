@@ -25,6 +25,7 @@ async def main(use_tor: bool = False) -> None:
         
         vpns = await get_vpns(proxies_meta)
 
+        # print(vpns)
         # connect
 
         # while ...:

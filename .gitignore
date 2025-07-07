@@ -4,5 +4,8 @@ __pycache__/
 # Temporary files, saved only locals
 tmp/
 
+# tmp test files in root prj dir
+*.ovpn
+test.py 
 
-# why not .venv in git status
+# why not .venv in git status -> as .venv contains own .gitignore

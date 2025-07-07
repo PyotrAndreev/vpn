@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime
 from pathlib import Path
-from types import Any
+from typing import Any
 
 import aiohttp, asyncio
 from asyncio import TimeoutError, IncompleteReadError
@@ -64,7 +64,7 @@ async def get_vpns(proxies: list[dict[str, str | bool]], from_local_files: bool 
             #       - else:
             #           Task(...) is alive before it's statuce is done
             # TODO: ASYNCIO THEORY: but why the program doesn't shutdown when some asyncio tasks are active?
-
+            
             to_json(vpns, full_path='vpn/tmp/sources/vpn.json', suffix=f"{datetime.now():%Y%m%d}", max_files_in_dir=2)
             return vpns
 

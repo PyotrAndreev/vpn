@@ -24,13 +24,13 @@ def to_json(data: dict | list[dict[str, str | bool]], full_path: str | Path, pre
     full_path = Path(full_path).with_suffix(".json")  # ensure .json extension
 
     if prefix:  # add 'YYYYMMDD_<file_name>.json' from the given path
-        full_path = full_path.with_name(f"{prefix}_{full_path.name}")
+        date_full_path = full_path.with_name(f"{prefix}_{full_path.name}")
     if suffix:  # add 'YYYYMMDD_<file_name>.json' from the given path
-        full_path = full_path.with_name(f"{full_path.stem}_{suffix}{full_path.suffix}")
+        date_full_path = full_path.with_name(f"{full_path.stem}_{suffix}{full_path.suffix}")
 
     try:
-        full_path.parent.mkdir(parents=True, exist_ok=True)  # ensure the dir exists
-        full_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        date_full_path.parent.mkdir(parents=True, exist_ok=True)  # ensure the dir exists
+        date_full_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         logger.debug(f"📝 Saved JSON with {len(data)} items to {full_path}")
 
         if max_files_in_dir != None:
@@ -41,7 +41,7 @@ def to_json(data: dict | list[dict[str, str | bool]], full_path: str | Path, pre
         sys.exit(1)
 
 
-def from_json(full_path: str | Path) -> dict | list[dict]:
+def from_json(full_path: str | Path) -> dict[str: dict] | list[dict]:
     """
     Load JSON from `full_path`, which may be either:
       • a dict:  { "spysme_socks": "...", ... }
@@ -83,7 +83,7 @@ def _cleanup_old_files(dir_path: Path, match_term: str, max_files: int) -> None:
     """
     match_files: list[Path] = sorted(dir_path.glob(f"*{match_term}*.json"),  # select matching files
                                      key=lambda file: file.stat().st_mtime)  # sort by modification time (oldest first)
-
+    
     if len(match_files) > max_files:  # delete oldest files if above the limit
         to_delete = match_files[:len(match_files)-max_files]
 
